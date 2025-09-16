@@ -1,0 +1,7 @@
+export ROOT="$( readlink -f "$( dirname "${BASH_SOURCE[0]}" )" )"
+export PYTHON_VENV_DIR=${ROOT}/venv
+
+export RUNS_DIR=${ROOT}/runs
+export DATA_ROOT=${ROOT}/_data
+export DOWNLOAD_DIR=${ROOT}/_download
+export PYTHONPATH="${ROOT}/src/lib"

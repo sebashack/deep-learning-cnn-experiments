@@ -1,0 +1,12 @@
+lmdb == 1.6.2
+matplotlib == 3.10.6
+numpy == 2.3.1
+omegaconf == 2.3.0
+pandas == 2.3.1
+pydot == 4.0.1
+rtree == 1.4.0
+scikit-image == 0.25.2
+scikit-learn == 1.7.0
+scipy == 1.16.1
+tensorboard == 2.19.0
+tqdm == 4.67.1
