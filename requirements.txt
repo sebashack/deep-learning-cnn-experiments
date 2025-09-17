@@ -3,6 +3,7 @@ matplotlib == 3.10.6
 numpy == 2.3.1
 omegaconf == 2.3.0
 pandas == 2.3.1
+pillow == 11.3.0
 pydot == 4.0.1
 rtree == 1.4.0
 scikit-image == 0.25.2
