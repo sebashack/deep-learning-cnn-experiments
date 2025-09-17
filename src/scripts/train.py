@@ -3,14 +3,13 @@ import sys
 # import random
 import numpy as np
 import torch
-from torch.utils.data import random_split, DataLoader
+from torch.utils.data import random_split, DataLoader, WeightedRandomSampler
 
 # import torch.optim as optim
 # import torch.nn as nn
 # import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
-# from torch.utils.data import DataLoader, Dataset, random_split, WeightedRandomSampler,
 # from torchvision.transforms import Compose, ToTensor, Normalize, ToPILImage, , Resize
 # from PIL import Image
 from torchvision.transforms import ToTensor, ToPILImage, RandomHorizontalFlip, Normalize, Compose
@@ -43,14 +42,29 @@ def plot_images(images, targets, n_plot=30):
     return fig
 
 
-# fig = plot_images(images, labels, n_plot=30)
-# plt.show()
+def make_balanced_sampler(y_tensor, seed=None):
+    generator = None
+    if seed is not None:
+        generator = torch.manual_seed(seed)
+    else:
+        generator = torch.Generator()
+
+    classes, counts = y_tensor.unique(return_counts=True)
+    class_weights = 1.0 / counts.float()
+    sample_weights = class_weights[y_tensor.squeeze().long()]
+
+    return WeightedRandomSampler(
+        weights=sample_weights,
+        num_samples=len(sample_weights),
+        generator=generator,
+        replacement=True,
+    )
 
 
 # NCHW: (number of images, channels, height, width)
 def main():
     seed = 13
-    torch.manual_seed(seed)
+    rand_gen = torch.manual_seed(seed)
 
     ######################
     ## Data preparation ##
@@ -64,12 +78,13 @@ def main():
     # Training loader
     x_train_tensor = x_tensor[train_indices]
     y_train_tensor = y_tensor[train_indices]
-
     train_composer = Compose(
         [RandomHorizontalFlip(p=0.5), Normalize(mean=(0.5), std=(0.5))]
     )  # We are normalizing the image matrix to have values -1,1 instead of 0,1.
     train_dataset = TransformedTensorDataset(x_train_tensor, y_train_tensor, train_composer)
-    train_loader = DataLoader(dataset=train_dataset, batch_size=16, shuffle=True)
+    train_loader = DataLoader(
+        dataset=train_dataset, batch_size=16, sampler=make_balanced_sampler(y_train_tensor, seed=42)
+    )
 
     # Validation loader
     x_val_tensor = x_tensor[val_indices]

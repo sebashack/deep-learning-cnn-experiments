@@ -13,7 +13,7 @@ class TransformedTensorDataset(Dataset):
         if self._transform:
             x = self._transform(x)
 
-        return x, self.y[i]
+        return x, self._y[i]
 
     def __len__(self):
         return len(self._x)
