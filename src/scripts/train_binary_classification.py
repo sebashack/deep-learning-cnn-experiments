@@ -2,7 +2,7 @@ import sys
 
 import numpy as np
 import torch
-from torch.utils.data import random_split, DataLoader, WeightedRandomSampler
+from torch.utils.data import random_split, DataLoader
 
 import torch.optim as optim
 import torch.nn as nn
@@ -11,27 +11,9 @@ from torchvision.transforms import ToTensor, ToPILImage, RandomHorizontalFlip, N
 # local modules
 from data_generation.image_classification import generate_dataset
 from dataset.transformed_tensor import TransformedTensorDataset
-from model.manager import ModelManager
+from dataset.utils import make_balanced_sampler
 from model.binary_classification import BinaryClassification
-
-
-def make_balanced_sampler(y_tensor, seed=None):
-    generator = None
-    if seed is not None:
-        generator = torch.manual_seed(seed)
-    else:
-        generator = torch.Generator()
-
-    classes, counts = y_tensor.unique(return_counts=True)
-    class_weights = 1.0 / counts.float()
-    sample_weights = class_weights[y_tensor.squeeze().long()]
-
-    return WeightedRandomSampler(
-        weights=sample_weights,
-        num_samples=len(sample_weights),
-        generator=generator,
-        replacement=True,
-    )
+from model.manager import ModelManager
 
 
 # NCHW: (number of images, channels, height, width)

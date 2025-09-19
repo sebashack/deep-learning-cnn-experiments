@@ -18,9 +18,9 @@ class BinaryClassification(nn.Module):
         z0 = self._linear0(x_flat)
         a0 = self._relu0(z0)
 
-        z1 =  self._linear1(a0)
+        z1 = self._linear1(a0)
         a1 = self._relu1(z1)
 
-        z2 =  self._linear2(a1)
+        z2 = self._linear2(a1)
 
         return self._sigmoid(z2)
