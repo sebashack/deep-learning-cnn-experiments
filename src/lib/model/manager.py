@@ -66,7 +66,8 @@ class ModelManager(object):
         if seed:
             self.set_seed(seed)
 
-        for epoch in trange(n_epochs, desc="Training", unit="epoch"):
+        pbar = trange(n_epochs, desc="Training", unit="epoch")
+        for epoch in pbar:
             self._total_epochs += 1
 
             loss = self._mini_batch(validation=False)
@@ -84,6 +85,11 @@ class ModelManager(object):
                     tag_scalar_dict = {"training": loss, "validation": val_loss}
 
                 self._tb_writer.add_scalars(main_tag="loss", tag_scalar_dict=tag_scalar_dict, global_step=epoch)
+
+            if val_loss is not None:
+                pbar.set_postfix({"train_loss": f"{loss:.4f}", "val_loss": f"{val_loss:.4f}"})
+            else:
+                pbar.set_postfix({"train_loss": f"{loss:.4f}"})
 
         if self._tb_writer:
             self._tb_writer.close()

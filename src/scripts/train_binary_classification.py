@@ -26,7 +26,7 @@ def main():
     ######################
     images, labels = generate_dataset(img_size=5, n_images=300, binary=True, seed=seed)
 
-    x_tensor = torch.from_numpy(images // 255).float()
+    x_tensor = torch.from_numpy(images / 255).float()
     y_tensor = torch.from_numpy(labels.reshape(-1, 1)).float()
     train_indices, val_indices = random_split(torch.arange(len(x_tensor)), [0.8, 0.2])
 
@@ -55,7 +55,6 @@ def main():
     # Model configuration
     lr = 0.1
     model = BinaryClassification(in_features=h * w)
-    optimizer_logistic = optim.SGD(model.parameters(), lr=lr)
     loss_fn = nn.BCELoss(reduction="mean")
     optimizer = optim.SGD(model.parameters(), lr=lr)
 
