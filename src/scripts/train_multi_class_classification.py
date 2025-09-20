@@ -23,7 +23,6 @@ def main():
 
     data_dir = Path(os.getenv("DOWNLOAD_DIR"))
     data_dir.mkdir(parents=True, exist_ok=True)
-    print(data_dir)
 
     ######################
     ## Data preparation ##
@@ -52,7 +51,7 @@ def main():
     manager.set_tensorboard()
     manager.add_graph()
 
-    manager.train(n_epochs=50)
+    manager.train(n_epochs=10)
 
 
 if __name__ == "__main__":

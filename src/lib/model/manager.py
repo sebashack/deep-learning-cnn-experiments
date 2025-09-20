@@ -27,7 +27,7 @@ class ModelManager(object):
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._model.to(self._device)
 
-        print("using device:", self._device)
+        print("model is using device:", self._device)
 
         self._train_loader = None
         self._val_loader = None
@@ -107,15 +107,20 @@ class ModelManager(object):
 
         self._model.train()
 
-    def eval(self, x):
+    def eval(self, x, to_cpu=True):
         self._model.eval()
 
         x_tensor = torch.as_tensor(x).float()
-        y_hat_tensor = self._model(x_tensor.to(self._device))
+
+        with torch.no_grad():
+            y_hat_tensor = self._model(x_tensor.to(self._device))
 
         self._model.train()
 
-        return y_hat_tensor.detach().cpu().numpy()
+        if to_cpu:
+            return y_hat_tensor.detach().cpu()
+        else:
+            return y_hat_tensor.detach()
 
     def add_graph(self):
         self._checkpoints_path.mkdir(parents=True, exist_ok=True)
