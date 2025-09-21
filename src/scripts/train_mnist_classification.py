@@ -24,9 +24,7 @@ def main():
     data_dir = Path(os.getenv("DOWNLOAD_DIR"))
     data_dir.mkdir(parents=True, exist_ok=True)
 
-    ######################
-    ## Data preparation ##
-    ######################
+    ## Data preparation
     composer = Compose([ToTensor(), Normalize(mean=(0.5), std=(0.5))])
 
     # 60000 images with CHW=(1, 28, 28)
@@ -38,13 +36,13 @@ def main():
     train_loader = DataLoader(dataset=train_dataset, batch_size=64, shuffle=True)
     val_loader = DataLoader(dataset=val_dataset, batch_size=64)
 
-    # Model configuration
+    ## Model configuration
     lr = 0.1
     model = LeNet5()
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
     optimizer = optim.SGD(model.parameters(), lr=lr)
 
-    # Manager setup
+    ## Manager setup
     manager = ModelManager(model, loss_fn, optimizer, tag="mnist_classification")
     manager.set_seed(seed)
     manager.set_loaders(train_loader=train_loader, val_loader=val_loader)

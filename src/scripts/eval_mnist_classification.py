@@ -43,30 +43,27 @@ def main():
     data_dir = Path(os.getenv("DOWNLOAD_DIR"))
     data_dir.mkdir(parents=True, exist_ok=True)
 
-    ######################
-    ## Data preparation ##
-    ######################
+    ## Data preparation
     composer = Compose([ToTensor(), Normalize(mean=(0.5), std=(0.5))])
 
     # 10000 images with CHW=(1, 28, 28)
     test_dataset = MNIST(root=data_dir, train=False, download=True, transform=composer)
     test_loader = DataLoader(dataset=test_dataset, batch_size=2)
-    test_it = iter(test_loader)
 
-    # Model configuration
+    ## Model configuration
     lr = 0.1
     model = LeNet5()
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
     optimizer = optim.SGD(model.parameters(), lr=lr)
 
-    # Manager setup
+    ## Manager setup
     seed = 42
     manager = ModelManager(model, loss_fn, optimizer, tag="mnist_classification")
     manager.set_seed(seed)
     ckpt_path = Path(os.getenv("ROOT")) / f"runs/{args.rundir_name}/checkpoints/{args.checkpoint}.ckpt"
     manager.load_checkpoint(ckpt_path)
 
-    # Eval
+    ## Eval
     all_predictions = []
     all_labels = []
     with torch.no_grad():

@@ -2,7 +2,6 @@ import torch.nn as nn
 
 
 # For 28×28 MNIST
-# Loss = nn.CrossEntropyLoss()
 class LeNet5(nn.Module):
     def __init__(self):
         super().__init__()
