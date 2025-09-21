@@ -28,6 +28,8 @@ class ModelManager(object):
         self._model.to(self._device)
 
         print("model is using device:", self._device)
+        total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        print("model trainable parameters:", total_params)
 
         self._train_loader = None
         self._val_loader = None

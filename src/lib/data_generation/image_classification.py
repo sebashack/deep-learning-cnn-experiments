@@ -1,3 +1,9 @@
+import requests
+import zipfile
+import os
+import errno
+from pathlib import Path
+
 import numpy as np
 
 
@@ -49,3 +55,27 @@ def generate_dataset(img_size=10, n_images=100, binary=True, seed=17):
         targets = (targets > 0).astype(int)
 
     return images, targets
+
+
+def download_rps(dir_path: Path):
+    filenames = ["rps.zip", "rps-test-set.zip"]
+    for filename in filenames:
+        download_dir = dir_path / filename[:-4]
+
+        if download_dir.exists() and download_dir.is_dir():
+            continue
+
+        download_dir.mkdir(parents=True, exist_ok=True)
+
+        file_path = dir_path / filename
+        # url = 'https://storage.googleapis.com/laurencemoroney-blog.appspot.com/{}'
+        # Updated from TFDS URL at
+        # https://github.com/tensorflow/datasets/blob/master/tensorflow_datasets/datasets/rock_paper_scissors/rock_paper_scissors_dataset_builder.py
+        url = "https://storage.googleapis.com/download.tensorflow.org/data/{}"
+        r = requests.get(url.format(filename), allow_redirects=True)
+        open(file_path, "wb").write(r.content)
+
+        with zipfile.ZipFile(file_path, "r") as zip_ref:
+            zip_ref.extractall(dir_path)
+
+        file_path.unlink()
