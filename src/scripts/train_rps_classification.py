@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset, random_split
 from torchvision.transforms import Compose, ToTensor, Normalize, ToPILImage, Resize
 from torchvision.datasets import ImageFolder
-from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, MultiStepLR, CyclicLR, LambdaLR
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 # local modules
 from data_generation.image_classification import download_rps
@@ -56,14 +56,20 @@ def main():
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
+    ## Scheduler setup
+    scheduler = ReduceLROnPlateau(optimizer, patience=4, factor=0.1, threshold=1e-4)
+
     ## Manager setup
     manager = ModelManager(model, loss_fn, optimizer, tag="rps_classification")
+
+    manager.set_lr_scheduler(scheduler)
     manager.set_seed(seed)
     manager.set_loaders(train_loader=train_loader, val_loader=val_loader)
     manager.set_tensorboard()
     manager.add_graph()
 
-    manager.train(n_epochs=30)
+    ## Train
+    manager.train(n_epochs=100)
 
 
 if __name__ == "__main__":

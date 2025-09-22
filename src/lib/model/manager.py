@@ -42,6 +42,17 @@ class ModelManager(object):
         self._train_step_fn = self._make_train_step_fn()
         self._val_step_fn = self._make_val_step_fn()
 
+        self._scheduler = None
+        self._scheduler_needs_val_loss = False
+
+    def set_lr_scheduler(self, scheduler):
+        if scheduler.optimizer != self._optimizer:
+            raise ValueError("Manager's optimizer does not match scheduler's")
+
+        self._scheduler = scheduler
+        if isinstance(self._scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+            self._scheduler_needs_val_loss = True
+
     def to(self, device):
         try:
             self._device = device
@@ -78,6 +89,7 @@ class ModelManager(object):
             with torch.no_grad():
                 val_loss = self._mini_batch(validation=True)
                 if val_loss:
+                    self._scheduler_step(val_loss)
                     self._val_losses.append(val_loss)
                     self._save_checkpoint(epoch, val_loss)
 
@@ -101,6 +113,9 @@ class ModelManager(object):
 
         self._model.load_state_dict(checkpoint["model_state_dict"])
         self._optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+
+        if self._scheduler:
+            self._scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
 
         self._total_epochs = checkpoint["epoch"]
         self._losses = checkpoint["loss"]
@@ -181,11 +196,18 @@ class ModelManager(object):
 
         return loss
 
+    def _scheduler_step(self, val_loss):
+        if self._scheduler_needs_val_loss:
+            self._scheduler.step(val_loss)
+        else:
+            self._scheduler.step()
+
     def _save_checkpoint(self, epoch: int, val_loss: float):
         checkpoint = {
             "epoch": epoch,
             "model_state_dict": self._model.state_dict(),
             "optimizer_state_dict": self._optimizer.state_dict(),
+            "scheduler_state_dict": self._scheduler.state_dict() if self._scheduler else None,
             "loss": self._losses,
             "val_loss": self._val_losses,
         }
