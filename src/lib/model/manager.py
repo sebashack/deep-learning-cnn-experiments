@@ -197,6 +197,9 @@ class ModelManager(object):
         return loss
 
     def _scheduler_step(self, val_loss):
+        if self._scheduler is None:
+            return
+
         if self._scheduler_needs_val_loss:
             self._scheduler.step(val_loss)
         else:
