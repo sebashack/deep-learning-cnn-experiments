@@ -4,14 +4,13 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
-from copy import deepcopy
 
 import torch
 import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, TensorDataset, random_split
-from torchvision.transforms import Compose, ToTensor, Normalize, ToPILImage, Resize
+from torch.utils.data import DataLoader
+from torchvision.transforms.v2 import Compose, ToImage, ToDtype, Normalize, Resize
 from torchvision.datasets import ImageFolder
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
@@ -33,7 +32,9 @@ def main():
 
     ## Normalizer preparation
     # 2528 images CHW: (3, 28, 28) after resizing
-    tmp_dataset = ImageFolder(root=data_dir / "rps", transform=Compose([Resize(28), ToTensor()]))
+    tmp_dataset = ImageFolder(
+        root=data_dir / "rps", transform=Compose([Resize(28), ToImage(), ToDtype(torch.float32, scale=True)])
+    )
     tmp_loader = DataLoader(dataset=tmp_dataset, batch_size=50)
 
     global_mean, global_std = compute_mean_std(tmp_loader)
@@ -41,11 +42,11 @@ def main():
     normalizer = Normalize(mean=global_mean, std=global_std)
 
     ## Data preparation
-    composer = Compose([Resize(28), ToTensor(), normalizer])
+    composer = Compose([Resize(28), ToImage(), ToDtype(torch.float32, scale=True), normalizer])
     # 2528 images CHW: (3, 28, 28) after resizing
-    train_dataset = ImageFolder(root=data_dir / "rps", transform=Compose([Resize(28), ToTensor()]))
+    train_dataset = ImageFolder(root=data_dir / "rps", transform=composer)
     # 624 images CHW: (3, 28, 28) after resizing
-    val_dataset = ImageFolder(root=data_dir / "rps-test-set", transform=Compose([Resize(28), ToTensor()]))
+    val_dataset = ImageFolder(root=data_dir / "rps-test-set", transform=composer)
 
     train_loader = DataLoader(dataset=train_dataset, batch_size=64, shuffle=True)
     val_loader = DataLoader(dataset=val_dataset, batch_size=32)
