@@ -44,6 +44,31 @@ class ModelManager(object):
 
         self._scheduler = None
         self._scheduler_needs_val_loss = False
+        self._clipping = None
+
+    def set_clip_grad_value(self, clip_value):
+        self._clipping = lambda: nn.utils.clip_grad_value_(self._model.parameters(), clip_value=clip_value)
+
+    def set_clip_grad_norm(self, max_norm, norm_type=2):
+        self._clipping = lambda: nn.utils.clip_grad_norm_(
+            self._model.parameters(), max_norm=max_norm, norm_type=norm_type
+        )
+
+    def set_clip_backprop(self, clip_value):
+        if self._clipping is None:
+            self._clipping = []
+
+        for p in self._model.parameters():
+            if p.requires_grad:
+                func = lambda grad: torch.clamp(grad, -clip_value, clip_value)
+                handle = p.register_hook(func)
+                self._clipping.append(handle)
+
+    def remove_clip(self):
+        if isinstance(self._clipping, list):
+            for handle in self._clipping:
+                handle.remove()
+        self._clipping = None
 
     def set_lr_scheduler(self, scheduler):
         if scheduler.optimizer != self._optimizer:
@@ -153,6 +178,9 @@ class ModelManager(object):
             yhat = self._model(x)  # forward pass
             loss = self._loss_fn(yhat, y)  # Computes loss
             loss.backward()  # Computes gradients
+
+            if callable(self._clipping):
+                self._clipping()
 
             self._optimizer.step()  # Update parameters using gradients and the learning rate
             self._optimizer.zero_grad()
